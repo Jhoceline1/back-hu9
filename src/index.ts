@@ -12,24 +12,23 @@ import nominatimRouter from './modules/controlC/HU5/sugerencias/routes';
 
 const app = express();
 
-/* ------------------------- C O R S   A R R E G L A D O ------------------------- */
-// ⚠️ IMPORTANTE: agrega tu dominio estable del FRONT en Vercel aquí
+/* -------------------- CONFIGURACIÓN DE CORS -------------------- */
 const STABLE_FRONT =
   process.env.FRONTEND_URL || 'https://front-hu9-1pne.vercel.app';
 
 const allowedOrigins = [
   'http://localhost:3000',
   STABLE_FRONT,
-  /\.vercel\.app$/, // permite todos tus previews *.vercel.app
+  /\.vercel\.app$/, // permite todos los subdominios *.vercel.app
 ];
 
 const corsOptions: cors.CorsOptions = {
   origin(origin, callback) {
-    // Permitir requests sin 'Origin' (SSR, server-to-server, curl)
+    // permitir peticiones sin origen (por ejemplo SSR o Postman)
     if (!origin) return callback(null, true);
 
     const ok = allowedOrigins.some((o) =>
-      o instanceof RegExp ? o.test(origin) : o === origin,
+      o instanceof RegExp ? o.test(origin) : o === origin
     );
 
     return ok
@@ -42,35 +41,27 @@ const corsOptions: cors.CorsOptions = {
   optionsSuccessStatus: 204,
 };
 
-// ⛔️ Reemplaza la línea antigua:
-// app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
-// ✅ Por estas dos:
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-/* ------------------------------------------------------------------------------ */
+/* --------------------------------------------------------------- */
 
 app.use(express.json());
 
-// Rutas (OJO: el prefijo correcto es /api/controlC/...)
+/* ------------------------- RUTAS ------------------------- */
 app.use('/api/controlC/google', googleRouter);
 app.use('/api/controlC/ubicacion', ubicacionRouter);
 app.use('/api/controlC/auth', authRouter);
 app.use('/api/controlC/registro', registrarDatosRouter);
 app.use('/api/controlC/modificar-datos', modificarDatosRouter);
 app.use('/api/controlC/sugerencias', nominatimRouter);
+/* ---------------------------------------------------------- */
 
-/* ----------------------------- E J E C U C I Ó N ------------------------------ */
-/**
- * En Vercel (serverless) NO se debe llamar app.listen.
- * Exportamos app para que lo use el handler de Vercel (api/index.ts).
- * En local sí levantamos el puerto.
- */
-const PORT = process.env.PORT ? Number(process.env.PORT) : 8000;
+/* ---------------------- EXPORTACIÓN ---------------------- */
+// ✅ Siempre exporta app al final, fuera de cualquier condicional
+export default app;
 
-if (process.env.VERCEL) {
-  // Vercel: exporta app (NO app.listen)
-  export default app;
-} else {
-  // Local / otros PaaS persistentes:
-  app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+/* ---------------------- MODO LOCAL ------------------------ */
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 8000;
+  app.listen(PORT, () => console.log(`Servidor local en puerto ${PORT}`));
 }
