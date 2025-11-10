@@ -14,7 +14,7 @@ const app = express();
 
 /* -------------------- CONFIGURACIÓN DE CORS -------------------- */
 const STABLE_FRONT =
-  process.env.FRONTEND_URL || 'https://front-hu9-1pne.vercel.app';
+  process.env.FRONTEND_URL || 'https://front-hu9.vercel.app/';
 
 const allowedOrigins = [
   'http://localhost:3000',
